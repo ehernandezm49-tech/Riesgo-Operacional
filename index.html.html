@@ -1,0 +1,485 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Riesgo Operacional Industrial</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Concepto: tablero de planta. Cuatro lienzos que se cambian con pestañas; cada uno tiene piezas que se tocan para ver ejemplos de una fábrica de envases. */
+:root{
+  --bg:#EDF0F1;--surface:#FAFBFB;--ink:#15222B;--muted:#47585F;--line:#C6D0D5;
+  --steel:#1D4E63;--on-steel:#FFFFFF;--tint:#DCE8ED;
+  --signal:#F2A900;--on-signal:#15222B;
+  --ok:#1F6E45;--warn:#7A5000;--bad:#A8231B;
+  --ok-bg:#DDF0E5;--warn-bg:#FBEBC8;--bad-bg:#F8DAD7;
+  --hdr-bg:#15222B;--hdr-ink:#EEF3F5;
+  --display:'Barlow Condensed','Arial Narrow',Arial,sans-serif;
+  --body:'Barlow',Arial,Helvetica,sans-serif;
+  --mono:'IBM Plex Mono',Consolas,'Courier New',monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0F171C;--surface:#18242B;--ink:#E7EDF0;--muted:#A2B3BC;--line:#2C3D47;
+    --steel:#79BDD6;--on-steel:#0E1A21;--tint:#1F3440;
+    --signal:#F2B632;--on-signal:#15222B;
+    --ok:#6CCB95;--warn:#EDB955;--bad:#F58A82;
+    --ok-bg:#173325;--warn-bg:#3A2D10;--bad-bg:#3E1C19;
+    --hdr-bg:#0A1014;--hdr-ink:#EEF3F5;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0F171C;--surface:#18242B;--ink:#E7EDF0;--muted:#A2B3BC;--line:#2C3D47;
+  --steel:#79BDD6;--on-steel:#0E1A21;--tint:#1F3440;
+  --signal:#F2B632;--on-signal:#15222B;
+  --ok:#6CCB95;--warn:#EDB955;--bad:#F58A82;
+  --ok-bg:#173325;--warn-bg:#3A2D10;--bad-bg:#3E1C19;
+  --hdr-bg:#0A1014;--hdr-ink:#EEF3F5;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 18px/1.55 var(--body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1120px;margin:0 auto;padding-block:20px 48px;display:flex;flex-direction:column;gap:18px}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--signal);outline-offset:2px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0}
+h2{font-size:clamp(32px,4.6vw,46px);line-height:1.02;font-weight:700;text-transform:uppercase;letter-spacing:.01em}
+h3{font-size:26px;line-height:1.1;font-weight:700}
+p{margin:0}
+.mono{font-family:var(--mono)}
+.eyebrow{font:500 13px/1.3 var(--mono);letter-spacing:.12em;text-transform:uppercase}
+
+/* Cabecera */
+.top{position:relative;background:var(--hdr-bg);color:var(--hdr-ink);border-radius:14px;padding:24px 28px 34px;overflow:hidden}
+.top .eyebrow{color:var(--signal)}
+.top h1{font-size:clamp(40px,7vw,72px);line-height:.95;font-weight:700;text-transform:uppercase;margin:10px 0 10px}
+.top p{max-width:62ch;color:#C9D5DB}
+.top::after{content:"";position:absolute;left:0;right:0;bottom:0;height:10px;
+  background:repeating-linear-gradient(-45deg,var(--signal) 0 14px,#15222B 14px 28px)}
+
+/* Pestañas */
+.tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.tab{text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;
+  display:flex;flex-direction:column;gap:2px;min-width:0}
+.tab .n{font:500 12px/1 var(--mono);letter-spacing:.1em;color:var(--muted)}
+.tab .t{font:700 22px/1.1 var(--display);text-transform:uppercase;overflow-wrap:anywhere}
+.tab[aria-selected="true"]{background:var(--steel);border-color:var(--steel);color:var(--on-steel)}
+.tab[aria-selected="true"] .n{color:var(--on-steel);opacity:.85}
+@media (max-width:760px){.tabs{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* Lienzos */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:28px;display:flex;flex-direction:column;gap:22px}
+.lead{font-size:20px;max-width:70ch}
+.hint{font:500 13px/1.3 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.note{background:var(--tint);border-radius:10px;padding:14px 16px;max-width:75ch}
+.note b{font-weight:600}
+@media (max-width:560px){.panel{padding:18px}}
+
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:9px 16px;font-weight:500;min-width:0}
+.chip[aria-pressed="true"]{background:var(--steel);border-color:var(--steel);color:var(--on-steel)}
+
+/* Cadena causa evento pérdida */
+.chain{display:grid;grid-template-columns:minmax(0,1fr) 36px minmax(0,1fr) 36px minmax(0,1fr);align-items:stretch;gap:8px}
+.step{border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:8px;background:var(--bg)}
+.step .eyebrow{color:var(--steel)}
+.step.loss{border-color:var(--signal);border-width:2px}
+.step.loss .eyebrow{color:var(--ink)}
+.step .big{font:700 30px/1.05 var(--display)}
+.arrow{display:flex;align-items:center;justify-content:center;font:700 28px/1 var(--display);color:var(--steel)}
+.arrow::before{content:"→"}
+@media (max-width:760px){
+  .chain{grid-template-columns:minmax(0,1fr)}
+  .arrow{height:24px}.arrow::before{content:"↓"}
+}
+.fade{animation:rise .35s ease both}
+@keyframes rise{from{opacity:.2;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.fade{animation:none}}
+
+/* Dos columnas */
+.split{display:grid;grid-template-columns:minmax(0,290px) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:820px){.split{grid-template-columns:minmax(0,1fr)}}
+.list{display:flex;flex-direction:column;gap:8px}
+.item{text-align:left;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:2px}
+.item .k{font:700 22px/1.1 var(--display);text-transform:uppercase}
+.item .s{font-size:15px;color:var(--muted)}
+.item[aria-pressed="true"]{background:var(--steel);border-color:var(--steel);color:var(--on-steel)}
+.item[aria-pressed="true"] .s{color:var(--on-steel);opacity:.9}
+.detail{border:1px solid var(--line);border-radius:12px;padding:22px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.ex{background:var(--bg);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:6px}
+.tag{align-self:flex-start;background:var(--signal);color:var(--on-signal);font:500 12px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;padding:6px 9px;border-radius:6px}
+.tag.alt{background:var(--tint);color:var(--ink)}
+
+.levels{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.levels .sep{color:var(--muted);font-weight:600}
+
+.cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px}
+@media (max-width:900px){.cols{grid-template-columns:minmax(0,1fr)}}
+.col{display:flex;flex-direction:column;gap:12px;min-width:0}
+
+/* Quiz */
+.quiz{display:flex;flex-direction:column;gap:12px}
+.q{border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.q .fb{font-weight:600;min-height:1.5em}
+.fb.ok{color:var(--ok)}.fb.bad{color:var(--bad)}
+
+/* Base de eventos */
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;min-width:660px;font-size:16px}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:500 12px/1.2 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);background:var(--bg)}
+td.num,th.num{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+tr.sel td{background:var(--tint)}
+tr.off td{opacity:.5}
+.linkbtn{background:none;border:0;padding:0;color:var(--steel);font-weight:600;text-decoration:underline}
+input[type=checkbox]{width:20px;height:20px;accent-color:var(--steel)}
+.meter{display:flex;flex-direction:column;gap:8px}
+.track{position:relative;height:22px;background:var(--bg);border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.fill{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--ok);transition:width .4s,background .3s}
+.mk{position:absolute;top:0;bottom:0;width:2px;background:var(--ink);opacity:.7}
+.meter-lab{display:flex;justify-content:space-between;font:500 13px/1.3 var(--mono);color:var(--muted);gap:8px;flex-wrap:wrap}
+.state{border-radius:10px;padding:12px 16px;font-weight:600}
+.state.ok{background:var(--ok-bg);color:var(--ok)}
+.state.warn{background:var(--warn-bg);color:var(--warn)}
+.state.bad{background:var(--bad-bg);color:var(--bad)}
+.addrow{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.addrow input[type=number]{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:140px}
+.btn{background:var(--steel);color:var(--on-steel);border:0;border-radius:8px;padding:10px 16px;font-weight:600}
+.btn:disabled{opacity:.4;cursor:default}
+.btn.ghost{background:var(--bg);color:var(--ink);border:1px solid var(--line)}
+.sum{display:flex;flex-direction:column;gap:10px;background:var(--signal);color:var(--on-signal);border-radius:12px;padding:20px 22px}
+.sum h3{font-size:30px;text-transform:uppercase}
+.sum p{font-size:19px}
+
+.nav{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.src{font-size:14px;color:var(--muted);max-width:90ch}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="eyebrow">Caso de ejemplo · Envases del Norte, S.A.</div>
+    <h1>Riesgo operacional en una planta</h1>
+    <p>Una fábrica inventada de envases plásticos, con 3 líneas de producción, 120 trabajadores y una bodega. Toca cada pieza para ver cómo el riesgo operacional aparece en el trabajo diario.</p>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="Lienzos">
+    <button class="tab" role="tab" id="t0" data-act="tab" data-i="0" aria-selected="true" aria-controls="p0"><span class="n">LIENZO 1</span><span class="t">¿Qué es?</span></button>
+    <button class="tab" role="tab" id="t1" data-act="tab" data-i="1" aria-selected="false" aria-controls="p1"><span class="n">LIENZO 2</span><span class="t">¿De dónde viene?</span></button>
+    <button class="tab" role="tab" id="t2" data-act="tab" data-i="2" aria-selected="false" aria-controls="p2"><span class="n">LIENZO 3</span><span class="t">¿Cómo se controla?</span></button>
+    <button class="tab" role="tab" id="t3" data-act="tab" data-i="3" aria-selected="false" aria-controls="p3"><span class="n">LIENZO 4</span><span class="t">¿Cómo se mide?</span></button>
+  </nav>
+
+  <!-- LIENZO 1 -->
+  <section class="panel" id="p0" role="tabpanel" aria-labelledby="t0">
+    <h2>¿Qué es el riesgo operacional?</h2>
+    <p class="lead">Es la posibilidad de perder dinero porque algo falla dentro de la empresa o llega desde afuera: una persona se equivoca, una forma de trabajar está mal pensada, un sistema se cae o pasa algo externo, como un fraude o una tormenta.</p>
+    <div class="note"><b>Así lo define el Comité de Basilea:</b> es el riesgo de pérdidas por fallas en los procesos, las personas o los sistemas, o por eventos externos. Incluye el riesgo legal; no incluye el riesgo de estrategia ni el de imagen.</div>
+    <div class="col">
+      <p class="hint">Elige un caso y mira cómo se arma la pérdida: causa → evento → pérdida</p>
+      <div class="chips" id="esc-chips"></div>
+      <div class="chain" id="chain" aria-live="polite"></div>
+      <p class="hint">Cifras de ejemplo, inventadas para esta práctica</p>
+    </div>
+  </section>
+
+  <!-- LIENZO 2 -->
+  <section class="panel" id="p1" role="tabpanel" aria-labelledby="t1" hidden>
+    <h2>¿De dónde viene el riesgo?</h2>
+    <p class="lead">El <b>riesgo inherente</b> es el que existe por la naturaleza del negocio, antes de poner cualquier control. En una planta nace de cuatro lugares. Toca uno para ver qué significa y un ejemplo.</p>
+    <div class="split">
+      <div class="list" id="org-list"></div>
+      <div class="detail fade" id="org-detail" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <!-- LIENZO 3 -->
+  <section class="panel" id="p2" role="tabpanel" aria-labelledby="t2" hidden>
+    <h2>¿Cómo se controla?</h2>
+    <p class="lead">La <b>gestión del riesgo operacional</b> se apoya en dos cosas: <b>políticas</b> (las reglas) y <b>procedimientos</b> (la forma de hacer las cosas).</p>
+    <div class="cols">
+      <div class="col">
+        <h3>Políticas: las reglas</h3>
+        <div class="chips" id="pol-chips"></div>
+        <div class="detail fade" id="pol-detail" aria-live="polite"></div>
+      </div>
+      <div class="col">
+        <h3>Procedimientos: cómo se hace</h3>
+        <div class="chips" id="proc-chips"></div>
+        <div class="detail fade" id="proc-detail" aria-live="polite"></div>
+      </div>
+    </div>
+    <div class="col">
+      <h3>Practica: ¿qué tipo de proceso es?</h3>
+      <div class="quiz" id="quiz"></div>
+      <p class="hint" id="quiz-score">Aciertos: 0 de 3</p>
+    </div>
+  </section>
+
+  <!-- LIENZO 4 -->
+  <section class="panel" id="p3" role="tabpanel" aria-labelledby="t3" hidden>
+    <h2>¿Cómo se mide y se limita?</h2>
+    <p class="lead">Lo que no se anota no se puede medir. La empresa registra cada evento en una <b>base de eventos</b>, prepara un <b>plan</b> para cada uno y vigila que las pérdidas no pasen un <b>límite</b>.</p>
+    <p class="hint">Octubre · límite de pérdidas del mes: Q 50,000 · quita o pon eventos y mira el semáforo</p>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Contar</th><th>Fecha</th><th>Tipo</th><th>Qué pasó</th><th class="num">Pérdida</th><th>Plan</th></tr></thead>
+        <tbody id="ev-body"></tbody>
+      </table>
+    </div>
+    <div class="detail fade" id="plan-box" aria-live="polite"></div>
+    <div class="meter">
+      <div class="track" aria-hidden="true"><span class="fill" id="fill"></span><i class="mk" style="left:53.33%"></i><i class="mk" style="left:66.67%"></i></div>
+      <div class="meter-lab"><span>Q 0</span><span>Aviso al 80 %</span><span>Límite: Q 50,000</span></div>
+      <div class="state ok" id="state"></div>
+    </div>
+    <div class="addrow">
+      <label for="nuevo-monto">Registrar un evento nuevo (Q):</label>
+      <input type="number" id="nuevo-monto" min="0" step="500" value="5000">
+      <button class="btn" data-act="add">Agregar evento</button>
+      <button class="btn ghost" data-act="reset">Volver al inicio</button>
+    </div>
+    <div class="sum">
+      <h3>En resumen</h3>
+      <p><b>1.</b> El riesgo operacional aparece en el trabajo de todos los días: personas, procesos, sistemas y sucesos de afuera.</p>
+      <p><b>2.</b> Se controla con reglas claras (dualidad, segregación y documentación) y con planes para seguir trabajando (BCP) y para recuperarse (BRP).</p>
+      <p><b>3.</b> Se mide anotando cada evento y se vigila con límites, para actuar antes de que la pérdida sea grande.</p>
+    </div>
+  </section>
+
+  <div class="nav">
+    <button class="btn ghost" id="prev" data-act="prev">← Anterior</button>
+    <span class="hint" id="pos">1 de 4</span>
+    <button class="btn" id="next" data-act="next">Siguiente →</button>
+  </div>
+  <p class="src">Fuentes: Comité de Supervisión Bancaria de Basilea, definición de riesgo operacional (2003) y Principios para la gestión sana del riesgo operacional (2021). La empresa, las personas y las cifras de esta página son ejemplos inventados con fines educativos.</p>
+</div>
+
+<script>
+(function(){
+  var $=function(s,r){return (r||document).querySelector(s)};
+  var $$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
+  var ids=['que-es','de-donde-viene','como-se-controla','como-se-mide'];
+  var cur=0;
+
+  function show(i,scroll){
+    cur=i;
+    $$('.panel').forEach(function(p,k){p.hidden=(k!==i)});
+    $$('.tab').forEach(function(t,k){t.setAttribute('aria-selected',k===i?'true':'false');t.tabIndex=(k===i)?0:-1});
+    $('#prev').disabled=(i===0);
+    $('#next').disabled=(i===3);
+    $('#pos').textContent=(i+1)+' de 4';
+    if(scroll){window.scrollTo(0,0)}
+  }
+  function go(i,scroll){
+    show(i,scroll);
+    try{location.hash=ids[i]}catch(e){}
+  }
+  function fromHash(){
+    var i=ids.indexOf(location.hash.slice(1));
+    show(i<0?0:i,false);
+  }
+  window.addEventListener('hashchange',fromHash);
+
+  /* Lienzo 1: casos */
+  var esc=[
+    {k:'Persona se equivoca',c:'Un operario programa mal la medida de la máquina.',e:'Salen 5,000 envases defectuosos.',l:'Q 18,000',lt:'en material y en volver a fabricarlos'},
+    {k:'Falla el sistema',c:'El programa de inventario se cae por falta de actualización.',e:'El despacho se detiene durante 6 horas.',l:'Q 25,000',lt:'por pedidos atrasados y multa del cliente'},
+    {k:'Evento externo',c:'Una tormenta deja la planta sin energía eléctrica.',e:'Se paran las 3 líneas de producción por un día.',l:'Q 60,000',lt:'en producción que no se pudo hacer'},
+    {k:'Fraude',c:'Alguien se hace pasar por un proveedor y pide cambiar la cuenta de pago.',e:'Se paga una factura a una cuenta falsa.',l:'Q 40,000',lt:'entregados a un estafador'}
+  ];
+  var escSel=0;
+  function renderEsc(){
+    $('#esc-chips').innerHTML=esc.map(function(x,i){
+      return '<button class="chip" data-act="esc" data-i="'+i+'" aria-pressed="'+(i===escSel)+'">'+x.k+'</button>';
+    }).join('');
+    var x=esc[escSel];
+    var c=$('#chain');
+    c.innerHTML=
+      '<div class="step fade"><span class="eyebrow">1 · Causa</span><p>'+x.c+'</p></div>'+
+      '<div class="arrow" aria-hidden="true"></div>'+
+      '<div class="step fade"><span class="eyebrow">2 · Evento</span><p>'+x.e+'</p></div>'+
+      '<div class="arrow" aria-hidden="true"></div>'+
+      '<div class="step loss fade"><span class="eyebrow">3 · Pérdida</span><p class="big">'+x.l+'</p><p>'+x.lt+'</p></div>';
+  }
+
+  /* Lienzo 2: fuentes del riesgo */
+  var lvls=[
+    {n:'Macroproceso',x:'Producción',t:'La gran área de trabajo.',r:'Si falla toda el área de Producción, la planta se detiene.'},
+    {n:'Proceso',x:'Empaque',t:'Una etapa dentro del área.',r:'Si el empaque está mal pensado, los envases llegan golpeados al cliente.'},
+    {n:'Microproceso',x:'Pegar la etiqueta del lote',t:'Una tarea pequeña y concreta.',r:'Si se pega la etiqueta equivocada, se devuelve un lote completo.'}
+  ];
+  var lvSel=0;
+  var orgs=[
+    {k:'Personas',s:'Recursos humanos y outsourcing',
+     q:'Errores, descuidos, falta de capacitación, fraude interno o que se vaya alguien clave.',
+     e:'Un operario nuevo, sin capacitación, regula mal la máquina de soplado y se pierde un lote.',
+     extra:'<div class="ex"><span class="tag alt">Outsourcing</span><p><b>Es contratar a otra empresa para que haga parte del trabajo</b> (limpieza, transporte, mantenimiento). El riesgo es depender de ella: si falla, tu planta se afecta.</p><p><b>Ejemplo:</b> la empresa de transporte contratada no llega y los pedidos salen tarde.</p></div>'},
+    {k:'Procesos',s:'Macroproceso, proceso y microproceso',
+     q:'La forma de hacer el trabajo. Falla cuando está mal diseñada, tiene controles débiles o no se sigue.',
+     e:'Nadie revisa la medida de los envases antes de empacarlos, y pasan piezas fuera de medida.',
+     extra:'lv'},
+    {k:'Sistemas',s:'Computadoras, programas y máquinas',
+     q:'Caídas, errores de programas, ataques por internet, accesos que no deberían existir y equipos viejos.',
+     e:'El programa que controla la temperatura del horno falla y se echa a perder un lote completo.',
+     extra:'<div class="ex"><span class="tag alt">Otro caso</span><p>Un correo con virus bloquea las computadoras de la oficina y no se pueden facturar los pedidos.</p></div>'},
+    {k:'Eventos externos',s:'Fraudes y sucesos de afuera',
+     q:'Cosas que vienen de afuera y no se controlan del todo: fraudes, robos, incendios, terremotos, tormentas o cambios en las leyes.',
+     e:'Un correo falso, igual al de un proveedor, pide cambiar su cuenta bancaria y se pagan Q 40,000 a un estafador.',
+     extra:'<div class="ex"><span class="tag alt">Fraude externo</span><p>Es engañar a la empresa para sacarle dinero o información. Otros ejemplos: suplantar a un cliente, clonar una tarjeta o robar mercadería de un camión.</p></div>'}
+  ];
+  var orgSel=0;
+  function renderOrg(){
+    $('#org-list').innerHTML=orgs.map(function(o,i){
+      return '<button class="item" data-act="org" data-i="'+i+'" aria-pressed="'+(i===orgSel)+'"><span class="k">'+o.k+'</span><span class="s">'+o.s+'</span></button>';
+    }).join('');
+    var o=orgs[orgSel];
+    var extra=o.extra;
+    if(extra==='lv'){
+      var L=lvls[lvSel];
+      extra='<div class="ex"><span class="tag alt">De lo grande a lo pequeño</span>'+
+        '<p>Un macroproceso se divide en procesos, y cada proceso en microprocesos. El riesgo puede estar en cualquier nivel. Toca un nivel:</p>'+
+        '<div class="levels">'+lvls.map(function(v,i){
+          return (i?'<span class="sep" aria-hidden="true">›</span>':'')+'<button class="chip" data-act="lvl" data-i="'+i+'" aria-pressed="'+(i===lvSel)+'">'+v.n+'</button>';
+        }).join('')+'</div>'+
+        '<p><b>'+L.n+':</b> '+L.t+' En Envases del Norte: <b>'+L.x+'</b>.</p>'+
+        '<p><b>Riesgo posible:</b> '+L.r+'</p></div>';
+    }
+    $('#org-detail').innerHTML=
+      '<h3>'+o.k+'</h3><p>'+o.q+'</p>'+
+      '<div class="ex"><span class="tag">Ejemplo en la planta</span><p>'+o.e+'</p></div>'+extra;
+  }
+
+  /* Lienzo 3 */
+  var pols=[
+    {k:'Dualidad',q:'Dos personas, dos firmas: una hace y otra revisa.',e:'Para pagar más de Q 10,000 a un proveedor, una persona prepara el pago y otra distinta lo aprueba.'},
+    {k:'Segregación',q:'Nadie manda, registra y guarda lo mismo: las funciones se separan.',e:'Quien compra la materia prima no es quien la recibe en bodega ni quien paga la factura.'},
+    {k:'Documentación',q:'Todo debe quedar por escrito y actualizado.',e:'El manual de la máquina, la hoja de revisión diaria y el registro de cada mantenimiento sirven de prueba y para capacitar.'}
+  ];
+  var polSel=0;
+  var procs=[
+    {k:'Automáticos',q:'Los hace el sistema solo, sin que una persona intervenga.',e:'Un sensor apaga la máquina si la temperatura pasa de 220 °C.',r:'El riesgo está en que el sistema esté mal configurado o falle.'},
+    {k:'Semiautomáticos',q:'El sistema y la persona trabajan juntos.',e:'El sistema propone la orden de compra y el jefe de compras la revisa y la aprueba.',r:'El riesgo está en aprobar sin revisar bien.'},
+    {k:'Manuales',q:'Los hace una persona, paso a paso.',e:'Contar a mano las cajas que salen al camión y anotarlas en una hoja.',r:'El riesgo es el error humano; por eso necesitan revisión y registro.'},
+    {k:'BCP y BRP',q:'<b>BCP:</b> plan para seguir trabajando si algo sale mal. <b>BRP:</b> plan para recuperarse después de un desastre.',e:'Si se incendia la bodega: con el BCP se produce en una planta de respaldo y se despacha desde otra bodega; con el BRP se reponen equipos y se recupera la información de las copias de seguridad.',r:'Estos planes se practican con simulacros, no solo se escriben.'}
+  ];
+  var procSel=0;
+  function renderPol(){
+    $('#pol-chips').innerHTML=pols.map(function(x,i){
+      return '<button class="chip" data-act="pol" data-i="'+i+'" aria-pressed="'+(i===polSel)+'">'+x.k+'</button>';
+    }).join('');
+    var x=pols[polSel];
+    $('#pol-detail').innerHTML='<h3>'+x.k+'</h3><p>'+x.q+'</p><div class="ex"><span class="tag">Ejemplo en la planta</span><p>'+x.e+'</p></div>';
+  }
+  function renderProc(){
+    $('#proc-chips').innerHTML=procs.map(function(x,i){
+      return '<button class="chip" data-act="proc" data-i="'+i+'" aria-pressed="'+(i===procSel)+'">'+x.k+'</button>';
+    }).join('');
+    var x=procs[procSel];
+    $('#proc-detail').innerHTML='<h3>'+x.k+'</h3><p>'+x.q+'</p><div class="ex"><span class="tag">Ejemplo en la planta</span><p>'+x.e+'</p></div><p>'+x.r+'</p>';
+  }
+  var quiz=[
+    {t:'Un bodeguero anota a mano cuántas cajas salieron al camión.',a:'manual'},
+    {t:'El sistema crea la orden de compra y el jefe de compras la aprueba.',a:'semi'},
+    {t:'Un sensor detiene la máquina cuando se calienta de más.',a:'auto'}
+  ];
+  var names={manual:'Manual',semi:'Semiautomático',auto:'Automático'};
+  var answers=[null,null,null];
+  function renderQuiz(){
+    $('#quiz').innerHTML=quiz.map(function(q,i){
+      var a=answers[i];
+      var fb='';
+      if(a){fb=(a===q.a)?'<p class="fb ok">¡Correcto! Es un proceso '+names[q.a].toLowerCase()+'.</p>':'<p class="fb bad">Casi. La respuesta es: '+names[q.a].toLowerCase()+'.</p>'}
+      else{fb='<p class="fb"></p>'}
+      return '<div class="q"><p>'+(i+1)+'. '+q.t+'</p><div class="chips">'+
+        ['manual','semi','auto'].map(function(v){
+          return '<button class="chip" data-act="quiz" data-q="'+i+'" data-v="'+v+'" aria-pressed="'+(a===v)+'">'+names[v]+'</button>';
+        }).join('')+'</div>'+fb+'</div>';
+    }).join('');
+    var n=0;answers.forEach(function(a,i){if(a===quiz[i].a)n++});
+    $('#quiz-score').textContent='Aciertos: '+n+' de 3';
+  }
+
+  /* Lienzo 4 */
+  var LIMIT=50000;
+  var base=[
+    {d:'03 oct',t:'Error humano',w:'Se midió mal el molde de los envases.',m:18000,p:'Capacitar al turno y revisar la medida antes de arrancar. Responsable: jefe de producción. Plazo: 15 días.'},
+    {d:'09 oct',t:'Sistema',w:'Se cayó el programa de inventario durante 6 horas.',m:12500,p:'Instalar un servidor de respaldo y probar la copia cada mes. Responsable: informática. Plazo: 30 días.'},
+    {d:'15 oct',t:'Outsourcing',w:'La empresa de transporte contratada no llegó.',m:9000,p:'Tener un segundo transportista ya aprobado. Responsable: logística. Plazo: 20 días.'},
+    {d:'21 oct',t:'Fraude externo',w:'Un correo falso pidió cambiar la cuenta de un proveedor; se detuvo a tiempo.',m:6500,p:'Confirmar por teléfono todo cambio de cuenta, con una segunda persona que apruebe (dualidad). Responsable: tesorería. Plazo: 7 días.'},
+    {d:'28 oct',t:'Proceso manual',w:'Se contaron mal las cajas que salieron al camión.',m:3000,p:'Usar un lector de código de barras en lugar del conteo a mano. Responsable: bodega. Plazo: 45 días.'}
+  ];
+  var evs,evSel;
+  function resetEv(){
+    evs=base.map(function(x){var y={};for(var k in x){y[k]=x[k]}y.on=true;return y});
+    evSel=0;
+  }
+  function q(n){return 'Q '+n.toLocaleString('en-US')}
+  function renderEv(){
+    $('#ev-body').innerHTML=evs.map(function(x,i){
+      var cls=(i===evSel?'sel':'')+(x.on?'':' off');
+      return '<tr class="'+cls+'"><td><input type="checkbox" data-act="inc" data-i="'+i+'" id="inc'+i+'" aria-label="Contar el evento del '+x.d+'"'+(x.on?' checked':'')+'></td>'+
+        '<td>'+x.d+'</td><td>'+x.t+'</td><td>'+x.w+'</td><td class="num">'+q(x.m)+'</td>'+
+        '<td><button class="linkbtn" data-act="plan" data-i="'+i+'">Ver plan</button></td></tr>';
+    }).join('');
+    var x=evs[evSel];
+    $('#plan-box').innerHTML='<span class="tag">Plan del evento · '+x.d+'</span><p><b>'+x.t+':</b> '+x.w+'</p><p><b>Qué se hará:</b> '+x.p+'</p>';
+    var tot=0;evs.forEach(function(e){if(e.on)tot+=e.m});
+    var pct=tot/LIMIT*100;
+    var f=$('#fill');
+    f.style.width=Math.min(pct/150,1)*100+'%';
+    var st=$('#state');
+    var cls,msg,col;
+    if(pct>=100){cls='bad';col='var(--bad)';msg='Límite superado: '+q(tot)+' de '+q(LIMIT)+' ('+Math.round(pct)+' %). Hay que avisar a la gerencia y revisar los planes.'}
+    else if(pct>=80){cls='warn';col='var(--warn)';msg='Cerca del límite: '+q(tot)+' de '+q(LIMIT)+' ('+Math.round(pct)+' %). Se avisa al jefe y se vigilan los planes.'}
+    else{cls='ok';col='var(--ok)';msg='Dentro del límite: '+q(tot)+' de '+q(LIMIT)+' ('+Math.round(pct)+' %). Todo en orden.'}
+    f.style.background=col;
+    st.className='state '+cls;
+    st.textContent=msg;
+  }
+  resetEv();
+
+  document.addEventListener('click',function(e){
+    var b=e.target.closest('[data-act]');
+    if(!b)return;
+    var a=b.getAttribute('data-act');
+    var i=parseInt(b.getAttribute('data-i'),10);
+    if(a==='tab'){go(i,false)}
+    else if(a==='prev'){if(cur>0)go(cur-1,true)}
+    else if(a==='next'){if(cur<3)go(cur+1,true)}
+    else if(a==='esc'){escSel=i;renderEsc()}
+    else if(a==='org'){orgSel=i;renderOrg()}
+    else if(a==='lvl'){lvSel=i;renderOrg()}
+    else if(a==='pol'){polSel=i;renderPol()}
+    else if(a==='proc'){procSel=i;renderProc()}
+    else if(a==='quiz'){answers[parseInt(b.getAttribute('data-q'),10)]=b.getAttribute('data-v');renderQuiz()}
+    else if(a==='plan'){evSel=i;renderEv()}
+    else if(a==='add'){
+      var v=parseInt($('#nuevo-monto').value,10);
+      if(isNaN(v)||v<0){v=0}
+      evs.push({d:'Hoy',t:'Evento nuevo',w:'Evento de ejemplo agregado por ti.',m:v,on:true,p:'Buscar la causa, nombrar un responsable y fijar una fecha para corregirla.'});
+      evSel=evs.length-1;
+      renderEv();
+    }
+    else if(a==='reset'){resetEv();renderEv()}
+  });
+  document.addEventListener('change',function(e){
+    var b=e.target.closest('[data-act="inc"]');
+    if(!b)return;
+    var i=parseInt(b.getAttribute('data-i'),10);
+    evs[i].on=b.checked;
+    renderEv();
+    var again=$('#inc'+i);if(again){again.focus()}
+  });
+  document.addEventListener('keydown',function(e){
+    var t=e.target.closest&&e.target.closest('.tab');
+    if(!t)return;
+    var i=parseInt(t.getAttribute('data-i'),10);
+    if(e.key==='ArrowRight'){go(Math.min(3,i+1),false);$('#t'+Math.min(3,i+1)).focus()}
+    if(e.key==='ArrowLeft'){go(Math.max(0,i-1),false);$('#t'+Math.max(0,i-1)).focus()}
+  });
+
+  renderEsc();renderOrg();renderPol();renderProc();renderQuiz();renderEv();
+  fromHash();
+})();
+</script>
+
+</body></html>
